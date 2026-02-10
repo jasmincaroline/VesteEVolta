@@ -7,12 +7,12 @@ namespace VesteEVolta.Models;
 
 public partial class PostgresContext : DbContext
 {
-    public PostgresContext(DbContextOptions<PostgresContext> options)
+    public PostgresContext(DbContextOptions<PostgresContext> options)      //construtor
         : base(options)
     {
     }
 
-    public virtual DbSet<TbCategory> TbCategories { get; set; }
+    public virtual DbSet<TbCategory> TbCategories { get; set; }        //cada dbset é uma tabela
 
     public virtual DbSet<TbClothing> TbClothings { get; set; }
 
@@ -32,10 +32,14 @@ public partial class PostgresContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    /*protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql("Host=localhost:5432;Database=postgres;Username=postgres;Password=root");*/
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        // Configuration is handled in Program.cs via Dependency Injection
+        base.OnConfiguring(optionsBuilder);
+    }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)  //esse método é onde o ef faz o mapa do banco
     {
         modelBuilder.Entity<TbCategory>(entity =>
         {

@@ -7,40 +7,38 @@ namespace VesteEVolta.Controllers;
 
 [ApiController]
 [Route("api/categories")]
-public class CategoriesController : ControllerBase
+public class CategoriesController : ControllerBase  
 {
-    private readonly PostgresContext _context;
+    private readonly PostgresContext _context;  
 
-    public CategoriesController(PostgresContext context)
+    public CategoriesController(PostgresContext context)  
     {
         _context = context;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
+    [HttpGet] 
+    public async Task<IActionResult> GetAll()   
     {
-        var categories = await _context.TbCategories
-            .Select(c => new { c.CategoryId, c.Name })
-            .ToListAsync();
+        var categories = await _context.TbCategories.ToListAsync();
 
-        return Ok(categories);
+        return Ok(categories); 
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CategoryRequestDto dto)
+    public async Task<IActionResult> Create([FromBody] CategoryRequestDto dto)  
     {
-        if (string.IsNullOrWhiteSpace(dto.Name))
-            return BadRequest("Name é obrigatório.");
+        if (string.IsNullOrWhiteSpace(dto.Name))   
+            return BadRequest("Nome é obrigatório.");
 
-        var category = new TbCategory
+        var category = new TbCategory  
         {
             CategoryId = Guid.NewGuid(),
             Name = dto.Name
         };
 
-        _context.TbCategories.Add(category);
-        await _context.SaveChangesAsync();
+        _context.TbCategories.Add(category);     
+        await _context.SaveChangesAsync();        
 
-        return Created("/api/categories", category);
+        return Created("/api/categories", category);   
     }
 }
