@@ -1,4 +1,3 @@
-using VesteEVolta.Data;
 using VesteEVolta.Models;
 using VesteEVolta.Repositories.Interfaces;
 
