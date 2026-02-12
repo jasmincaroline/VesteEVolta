@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VesteEVolta.Models;
+using VesteEVolta.Repositories;
+using VesteEVolta.Services;
 
 var builder = WebApplication.CreateBuilder(args);    
 
