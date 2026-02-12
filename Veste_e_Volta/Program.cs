@@ -10,5 +10,8 @@ builder.Services.AddDbContext<PostgresContext>(options =>
 
 var app = builder.Build();      
 
+app.UseAuthorization();
+
 app.MapControllers();   
-app.Run();      
+app.Run();
+app.Run();

@@ -6,7 +6,7 @@ using AulaApi.Veste_e_Volta.DTO;
 namespace VesteEVolta.Controllers;
 
 [ApiController]
-[Route("api/categories")]
+[Route("categories")]
 public class CategoriesController : ControllerBase  
 {
     private readonly PostgresContext _context;  
