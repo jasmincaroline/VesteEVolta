@@ -1,9 +1,7 @@
-﻿using AulaApi.Veste_e_Volta.DTO;
-
-namespace AulaApi.Veste_e_Volta.DTO
+﻿namespace VesteEVolta.DTO
 {
-    public class CategoryRequestDto    
+    public class CategoryRequestDto
     {
-        public string Name { get; set; } = default!;  
+        public string Name { get; set; } = default!;
     }
 }

@@ -34,12 +34,12 @@ public partial class PostgresContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // Configuration is handled in Program.cs via Dependency Injection
+       
         base.OnConfiguring(optionsBuilder);
     }
 
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)  //esse método é onde o ef faz o mapa do banco
+    protected override void OnModelCreating(ModelBuilder modelBuilder)  
     {
         modelBuilder.Entity<TbCategory>(entity =>
         {
@@ -308,7 +308,7 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(256)
                 .HasColumnName("name");
-            entity.Property(e => e.Password)
+            entity.Property(e => e.PasswordHash)
                 .HasMaxLength(256)
                 .HasColumnName("password");
             entity.Property(e => e.ProfileType)
