@@ -8,26 +8,26 @@ using VesteEVolta.DTO;
 [TestFixture]
 public class RentalServiceTest
 {
-    private Mock<IRentalRepository> _repositoryMock;
-    private RentalService _service;
+    private Mock<IRentalRepository> repositoryMock;
+    private RentalService service;
 
     [SetUp]
     public void Setup()
     {
-        _repositoryMock = new Mock<IRentalRepository>();
-        _service = new RentalService(_repositoryMock.Object);
+        repositoryMock = new Mock<IRentalRepository>();
+        service = new RentalService(repositoryMock.Object);
     }
 
     [Test]
     public async Task GetAll_ShouldReturnEmptyList_WhenNoRentalsExist()
     {
         // ARRANGE
-        _repositoryMock
+        repositoryMock
             .Setup(x => x.GetAll())
             .ReturnsAsync(new List<TbRental>());
 
         // ACT
-        var result = await _service.GetAll();
+        var result = await service.GetAll();
 
         // ASSERT
         Assert.That(result.Count(), Is.EqualTo(0));
@@ -46,12 +46,12 @@ public class RentalServiceTest
             CreatedAt = DateTime.UtcNow
         };
 
-        _repositoryMock
+        repositoryMock
             .Setup(x => x.GetById(rental.Id))
             .ReturnsAsync(rental);
 
         // ACT
-        var result = await _service.GetById(rental.Id);
+        var result = await service.GetById(rental.Id);
 
         // ASSERT
         Assert.That(result, Is.Not.Null);
@@ -65,12 +65,12 @@ public class RentalServiceTest
         // ARRANGE
         var id = Guid.NewGuid();
 
-        _repositoryMock
+        repositoryMock
             .Setup(x => x.GetById(id))
             .ReturnsAsync((TbRental?)null);
 
         // ACT
         Assert.ThrowsAsync<Exception>(async () =>
-            await _service.UpdateStatus(id, "finished"));
+            await service.UpdateStatus(id, "finished"));
     }
 }
