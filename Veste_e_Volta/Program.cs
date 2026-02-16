@@ -15,6 +15,12 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<PostgresContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Repositories
+builder.Services.AddScoped<IRentalRepository, RentalRepository>();
+
+// Services
+builder.Services.AddScoped<IRentalService, RentalService>();
+
 // JWT config - negócio do login
 var jwt = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwt["Key"]!);
