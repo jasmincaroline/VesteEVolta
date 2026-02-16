@@ -5,7 +5,7 @@ using VesteEVolta.Services;
 namespace VesteEVolta.Controllers;
 
 [ApiController]
-[Route("api/rentals")]
+[Route("rentals")]
 public class RentalController : ControllerBase
 {
     private readonly IRentalService _rentalService;
