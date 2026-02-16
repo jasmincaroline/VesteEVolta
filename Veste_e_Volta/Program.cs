@@ -17,10 +17,10 @@ builder.Services.AddDbContext<PostgresContext>(options =>
 
 // Repositories
 builder.Services.AddScoped<IRentalRepository, RentalRepository>();
-
+builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 // Services
 builder.Services.AddScoped<IRentalService, RentalService>();
-
+builder.Services.AddScoped<IRatingService, RatingService>();
 // JWT config - negócio do login
 var jwt = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwt["Key"]!);
