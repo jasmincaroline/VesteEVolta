@@ -29,10 +29,10 @@ public class PaymentService : IPaymentService
             .AnyAsync(r => r.Id == rentalId);
 
         if (!rentalExists)
-            throw new Exception("Rental não encontrado.");
+            throw new Exception("Aluguel não encontrado.");
 
         if (dto.Amount <= 0)
-            throw new Exception("Amount deve ser maior que 0.");
+            throw new Exception("O valor deve ser maior que 0.");
 
         var allowedStatus = new[] { "pending", "paid", "canceled" };
 

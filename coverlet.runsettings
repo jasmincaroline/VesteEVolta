@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+
+          <!-- Ignora todos os arquivos dentro da pasta Repositories -->
+          <ExcludeByFile>**/Repositories/**/*.cs</ExcludeByFile>
+
+          <!-- Ignora namespace específico -->
+          <Exclude>[VesteEVolta]VesteEVolta.Repositories.*</Exclude>
+
+          <!-- Ignora classes marcadas com [ExcludeFromCodeCoverage] -->
+          <ExcludeByAttribute>^ExcludeFromCodeCoverageAttribute$</ExcludeByAttribute>
+
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

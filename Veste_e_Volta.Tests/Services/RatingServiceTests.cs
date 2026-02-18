@@ -1,8 +1,8 @@
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using Moq;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using VesteEVolta.Application.DTOs;
 using VesteEVolta.Models;
 
@@ -21,32 +21,28 @@ public class RatingServiceTests
 
         _service = new RatingService(
             _ratingRepositoryMock.Object,
-            _rentalRepositoryMock.Object
-        );
+            _rentalRepositoryMock.Object);
     }
 
     [Test]
-    public void CreateAsync_ShouldThrow_WhenRentalNotFound()
+    public void CreateAsync_RentNotFound_ThrowsException()
     {
-        // Arrange
-        var dto = new RatingDto
-        {
-            RentId = Guid.NewGuid()
-        };
+        var dto = new RatingDto { RentId = Guid.NewGuid() };
 
         _rentalRepositoryMock
             .Setup(r => r.GetById(dto.RentId))
-            .ReturnsAsync((TbRental?)null);
+            .ReturnsAsync((TbRental)null);
 
-        // Act e Assert
-        Assert.ThrowsAsync<Exception>(() => _service.CreateAsync(dto));
+        var ex = Assert.ThrowsAsync<Exception>(
+            async () => await _service.CreateAsync(dto));
+
+        Assert.That(ex.Message, Is.EqualTo("Aluguel não encontrado."));
     }
 
     [Test]
-    public void CreateAsync_ShouldThrow_WhenUserIsNotRentalOwner()
+    public void CreateAsync_UserMismatch_ThrowsException()
     {
-        // Arrange
-        var rental = new TbRental
+        var rent = new TbRental
         {
             Id = Guid.NewGuid(),
             UserId = Guid.NewGuid(),
@@ -55,151 +51,118 @@ public class RatingServiceTests
 
         var dto = new RatingDto
         {
-            RentId = rental.Id,
+            RentId = rent.Id,
             UserId = Guid.NewGuid()
         };
 
-        _rentalRepositoryMock
-            .Setup(r => r.GetById(dto.RentId))
-            .ReturnsAsync(rental);
+        _rentalRepositoryMock.Setup(r => r.GetById(rent.Id)).ReturnsAsync(rent);
 
-        // Act & Assert
-        Assert.ThrowsAsync<Exception>(() => _service.CreateAsync(dto));
+        var ex = Assert.ThrowsAsync<Exception>(
+            async () => await _service.CreateAsync(dto));
+
+        Assert.That(ex.Message, Is.EqualTo("Você não pode avaliar este aluguel."));
     }
 
     [Test]
-    public void CreateAsync_ShouldThrow_WhenRentalIsNotFinished()
+    public void CreateAsync_StatusNotFinished_ThrowsException()
     {
-        // Arrange
-        var userId = Guid.NewGuid();
-
-        var rental = new TbRental
+        var rent = new TbRental
         {
             Id = Guid.NewGuid(),
-            UserId = userId,
+            UserId = Guid.NewGuid(),
             Status = "Active"
         };
 
         var dto = new RatingDto
         {
-            RentId = rental.Id,
-            UserId = userId
+            RentId = rent.Id,
+            UserId = rent.UserId
         };
 
-        _rentalRepositoryMock
-            .Setup(r => r.GetById(dto.RentId))
-            .ReturnsAsync(rental);
+        _rentalRepositoryMock.Setup(r => r.GetById(rent.Id)).ReturnsAsync(rent);
 
-        // Act e Assert
-        Assert.ThrowsAsync<Exception>(() => _service.CreateAsync(dto));
+        var ex = Assert.ThrowsAsync<Exception>(
+            async () => await _service.CreateAsync(dto));
+
+        Assert.That(ex.Message, Is.EqualTo("Só é possível avaliar após finalizar o aluguel."));
     }
 
     [Test]
-    public void CreateAsync_ShouldThrow_WhenRatingAlreadyExists()
+    public async Task CreateAsync_ValidData_CallsAddAsync()
     {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var rentId = Guid.NewGuid();
-
-        var rental = new TbRental
+        var rent = new TbRental
         {
-            Id = rentId,
-            UserId = userId,
-            Status = "Finished"
-        };
-
-        var dto = new RatingDto
-        {
-            RentId = rentId,
-            UserId = userId
-        };
-
-        _rentalRepositoryMock
-            .Setup(r => r.GetById(rentId))
-            .ReturnsAsync(rental);
-
-        _ratingRepositoryMock
-            .Setup(r => r.GetByRentIdAsync(rentId))
-            .ReturnsAsync(new TbRating());
-
-        // Act e Assert
-        Assert.ThrowsAsync<Exception>(() => _service.CreateAsync(dto));
-    }
-
-    [Test]
-    public void CreateAsync_ShouldThrow_WhenClothingDoesNotMatchRental()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var rentId = Guid.NewGuid();
-
-        var rental = new TbRental
-        {
-            Id = rentId,
-            UserId = userId,
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
             ClothingId = Guid.NewGuid(),
             Status = "Finished"
         };
 
         var dto = new RatingDto
         {
-            RentId = rentId,
-            UserId = userId,
-            ClothingId = Guid.NewGuid()
-        };
-
-        _rentalRepositoryMock
-            .Setup(r => r.GetById(rentId))
-            .ReturnsAsync(rental);
-
-        _ratingRepositoryMock
-            .Setup(r => r.GetByRentIdAsync(rentId))
-            .ReturnsAsync((TbRating?)null);
-
-        // Act e Assert
-        Assert.ThrowsAsync<Exception>(() => _service.CreateAsync(dto));
-    }
-
-    [Test]
-    public async Task CreateAsync_ShouldCreateRating_WhenValid()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var rentId = Guid.NewGuid();
-        var clothingId = Guid.NewGuid();
-
-        var rental = new TbRental
-        {
-            Id = rentId,
-            UserId = userId,
-            ClothingId = clothingId,
-            Status = "Finished"
-        };
-
-        var dto = new RatingDto
-        {
-            RentId = rentId,
-            UserId = userId,
-            ClothingId = clothingId,
+            RentId = rent.Id,
+            UserId = rent.UserId,
+            ClothingId = rent.ClothingId,
             Rating = 5,
             Comment = "Excelente!"
         };
 
-        _rentalRepositoryMock
-            .Setup(r => r.GetById(rentId))
-            .ReturnsAsync(rental);
+        _rentalRepositoryMock.Setup(r => r.GetById(rent.Id)).ReturnsAsync(rent);
+        _ratingRepositoryMock.Setup(r => r.GetByRentIdAsync(rent.Id)).ReturnsAsync((TbRating)null);
 
-        _ratingRepositoryMock
-            .Setup(r => r.GetByRentIdAsync(rentId))
-            .ReturnsAsync((TbRating?)null);
-
-        // Act
         await _service.CreateAsync(dto);
 
-        // Assert
-        _ratingRepositoryMock.Verify(
-            r => r.AddAsync(It.IsAny<TbRating>()),
-            Times.Once
-        );
+        _ratingRepositoryMock.Verify(r =>
+            r.AddAsync(It.Is<TbRating>(x =>
+                x.RentId == dto.RentId &&
+                x.UserId == dto.UserId &&
+                x.Rating == 5)),
+            Times.Once);
+    }
+
+    [Test]
+    public void DeleteAsync_NotFound_ThrowsException()
+    {
+        var id = Guid.NewGuid();
+
+        _ratingRepositoryMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync((TbRating)null);
+
+        var ex = Assert.ThrowsAsync<Exception>(
+            async () => await _service.DeleteAsync(id, Guid.NewGuid()));
+
+        Assert.That(ex.Message, Is.EqualTo("Avaliação não encontrada."));
+    }
+
+    [Test]
+    public void DeleteAsync_UserMismatch_ThrowsException()
+    {
+        var rating = new TbRating
+        {
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid()
+        };
+
+        _ratingRepositoryMock.Setup(r => r.GetByIdAsync(rating.Id)).ReturnsAsync(rating);
+
+        var ex = Assert.ThrowsAsync<Exception>(
+            async () => await _service.DeleteAsync(rating.Id, Guid.NewGuid()));
+
+        Assert.That(ex.Message, Is.EqualTo("Você não pode excluir essa avaliação."));
+    }
+
+    [Test]
+    public async Task DeleteAsync_Valid_CallsDeleteAsync()
+    {
+        var rating = new TbRating
+        {
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid()
+        };
+
+        _ratingRepositoryMock.Setup(r => r.GetByIdAsync(rating.Id)).ReturnsAsync(rating);
+
+        await _service.DeleteAsync(rating.Id, rating.UserId);
+
+        _ratingRepositoryMock.Verify(r => r.DeleteAsync(rating), Times.Once);
     }
 }
