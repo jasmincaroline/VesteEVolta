@@ -1,5 +1,9 @@
 using VesteEVolta.Application.DTOs;
 using VesteEVolta.Models;
+using System.Text;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 public class RatingService : IRatingService
 {
@@ -34,7 +38,7 @@ public class RatingService : IRatingService
             throw new Exception("Este aluguel já foi avaliado.");
 
         if (rent.ClothingId != dto.ClothingId)
-            throw new Exception("Clothing não corresponde ao aluguel.");
+            throw new Exception("Roupa não corresponde ao aluguel.");
 
         var rating = new TbRating
         {
@@ -67,7 +71,21 @@ public class RatingService : IRatingService
             CreatedAt = r.CreatedAt
         }).ToList();
     }
-
+    public async Task<IEnumerable<RatingDto>> GetAllAsync()
+    {
+        var ratings = await _ratingRepository.GetAll();
+        return ratings.Select(r => new RatingDto
+        {
+            Id = r.Id,
+            UserId = r.UserId,
+            RentId = r.RentId,
+            ClothingId = r.ClothingId,
+            Rating = r.Rating,
+            Comment = r.Comment,
+            Date = r.Date,
+            CreatedAt = r.CreatedAt
+        });
+    }
     public async Task<List<RatingDto>> GetByUserAsync(Guid userId)
     {
         var ratings = await _ratingRepository.GetByUserIdAsync(userId);
@@ -97,4 +115,60 @@ public class RatingService : IRatingService
 
         await _ratingRepository.DeleteAsync(rating);
     }
+     public async Task<byte[]> GenerateReportAsync()
+    {
+        var ratings = await _ratingRepository.GetAll();
+
+        var csvLines = new List<string> { "Id,UserId,ClothingId,Score,Comment" };
+        foreach (var r in ratings)
+        {
+        var commentEscaped = r.Comment?.Replace("\"", "\"\"") ?? "";
+        csvLines.Add($"{r.Id},{r.UserId},{r.ClothingId},{r.Rating},\"{commentEscaped}\"");
+        }
+
+        var csvContent = string.Join(Environment.NewLine, csvLines);
+        return Encoding.UTF8.GetBytes(csvContent);
+    }
+    public async Task<byte[]> GeneratePdfReportAsync()
+{
+    var ratings = await _ratingRepository.GetAll();
+
+    var pdfBytes = Document.Create(container =>
+    {
+        container.Page(page =>
+        {
+            page.Size(PageSizes.A4);
+            page.Margin(20);
+            page.Content().Column(column =>
+            {
+                column.Item().Text("Rating Report").FontSize(20).Bold().AlignCenter();
+
+                column.Item().LineHorizontal(1);
+
+                column.Item().Row(row =>
+                {
+                    row.RelativeItem().Text("Id").Bold();
+                    row.RelativeItem().Text("UserId").Bold();
+                    row.RelativeItem().Text("ClothingId").Bold();
+                    row.RelativeItem().Text("Rating").Bold();
+                    row.RelativeItem().Text("Comment").Bold();
+                });
+
+                foreach (var r in ratings)
+                {
+                    column.Item().Row(row =>
+                    {
+                        row.RelativeItem().Text(r.Id.ToString());
+                        row.RelativeItem().Text(r.UserId.ToString());
+                        row.RelativeItem().Text(r.ClothingId.ToString());
+                        row.RelativeItem().Text(r.Rating.ToString());
+                        row.RelativeItem().Text(r.Comment ?? "");
+                    });
+                }
+            });
+        });
+    }).GeneratePdf();
+
+    return pdfBytes;
+}
 }

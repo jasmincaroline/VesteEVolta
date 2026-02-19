@@ -6,14 +6,23 @@
         <Configuration>
           <Format>cobertura</Format>
 
-          <!-- Excluir por arquivo (no formato exato do Cobertura) -->
-          <ExcludeByFile>Program.cs</ExcludeByFile>
-          <ExcludeByFile>Repositories\*</ExcludeByFile>
-          <ExcludeByFile>Repositories\**\*</ExcludeByFile>
+          <!-- Excluir por arquivo (glob) -->
+          <ExcludeByFile>**/Program.cs</ExcludeByFile>
+          <ExcludeByFile>**/Repositories/**/*.cs</ExcludeByFile>
 
-          <!-- (Opcional) reforço por tipo -->
+          <!-- (Opcional) se vocês querem tirar modelos/infra também -->
+          <!-- <ExcludeByFile>**/Models/**/*.cs</ExcludeByFile> -->
+          <!-- <ExcludeByFile>**/*Context.cs</ExcludeByFile> -->
+          <!-- <ExcludeByFile>**/Converters/**/*.cs</ExcludeByFile> -->
+
+          <!-- Excluir por namespace/tipo (reforço) -->
+          <Exclude>[VesteEVolta]VesteEVolta.Repositories.*</Exclude>
           <Exclude>[VesteEVolta]*Repository*</Exclude>
           <Exclude>[VesteEVolta]*Repositories*</Exclude>
+          <Exclude>[VesteEVolta]Program</Exclude>
+
+          <!-- Se você marcar coisas com [ExcludeFromCodeCoverage], isso respeita -->
+          <ExcludeByAttribute>^ExcludeFromCodeCoverageAttribute$</ExcludeByAttribute>
         </Configuration>
       </DataCollector>
     </DataCollectors>

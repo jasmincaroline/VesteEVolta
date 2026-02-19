@@ -6,4 +6,9 @@ public interface IRatingService
     Task<List<RatingDto>> GetByClothingAsync(Guid clothingId);
     Task<List<RatingDto>> GetByUserAsync(Guid userId);
     Task DeleteAsync(Guid id, Guid userId);
+    Task<IEnumerable<RatingDto>> GetAllAsync();
+    Task<byte[]> GenerateReportAsync();
+    Task<byte[]> GeneratePdfReportAsync();
+
+
 }

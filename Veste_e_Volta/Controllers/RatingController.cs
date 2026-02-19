@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using VesteEVolta.Application.DTOs;
-using VesteEVolta.Services;
-using VesteEVolta.Models;
+using System.Text;
 
 namespace VesteEVolta.Controllers;
 
 [ApiController]
-[Route("rating")]
+[Route("ratings")]
 public class RatingController : ControllerBase
 {
     private readonly IRatingService _ratingService;
@@ -23,6 +22,13 @@ public class RatingController : ControllerBase
         return Ok("Avaliação criada com sucesso.");
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var ratings = await _ratingService.GetAllAsync();
+        return Ok(ratings);
+    }
+
     [HttpGet("clothing/{clothingId}")]
     public async Task<IActionResult> GetByClothing(Guid clothingId)
     {
@@ -35,5 +41,30 @@ public class RatingController : ControllerBase
     {
         await _ratingService.DeleteAsync(id, userId);
         return NoContent();
+    }
+    [HttpGet("report")]
+    public async Task<IActionResult> GenerateReport()
+    {
+    var fileContent = await _ratingService.GenerateReportAsync();
+
+    var fileBytes = Encoding.UTF8.GetPreamble().Concat(fileContent).ToArray();
+
+    return File(
+        fileBytes,
+        "text/csv",
+        "rating-report.csv"
+        );
+    }
+    
+    [HttpGet("report/pdf")]
+    public async Task<IActionResult> GeneratePdfReport()
+    {
+    var pdfContent = await _ratingService.GeneratePdfReportAsync();
+
+    return File(
+        pdfContent,
+        "application/pdf",
+        "rating-report.pdf"
+    );
     }
 }

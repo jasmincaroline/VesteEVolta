@@ -19,6 +19,11 @@ public class RentalController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] RentalDTO dto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var rental = await _rentalService.Create(dto);
 
         return CreatedAtAction(
@@ -70,5 +75,13 @@ public class RentalController : ControllerBase
     {
         var rentals = await _rentalService.GetByClothingId(clothingId);
         return Ok(rentals);
+    }
+
+    // DELETE /api/rentals/{id}
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        await _rentalService.Delete(id);
+        return NoContent();
     }
 }

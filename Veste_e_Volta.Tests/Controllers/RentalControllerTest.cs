@@ -105,7 +105,7 @@ namespace VesteEVolta.Tests.Controllers
 
             _rentalServiceMock
             .Setup(s => s.GetById(rentalId))
-            .ReturnsAsync((RentalResponseDTO?)null);
+            .ReturnsAsync((RentalResponseDTO?)null!);
 
             // Act
             var result = await _controller.GetById(rentalId);

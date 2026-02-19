@@ -5,8 +5,14 @@ using System.Text;
 using VesteEVolta.Models;
 using VesteEVolta.Repositories;
 using VesteEVolta.Services;
+using VesteEVolta.Converters;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Licenses
+QuestPDF.Settings.License = LicenseType.Community;
 
 //Controllers
 builder.Services.AddControllers();
@@ -34,8 +40,6 @@ builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
 
 
-
-
 // JWT config - negócio do login
 var jwt = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwt["Key"]!);
@@ -58,6 +62,19 @@ builder.Services
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<IClothingRepository, ClothingRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Skip; // Ignora propriedades extras
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new JsonDateOnlyConverter());
+    });
 
 
 var app = builder.Build();
