@@ -18,9 +18,24 @@ builder.Services.AddDbContext<PostgresContext>(options =>
 // Repositories
 builder.Services.AddScoped<IRentalRepository, RentalRepository>();
 builder.Services.AddScoped<IRatingRepository, RatingRepository>();
+builder.Services.AddScoped<IRentalRepository, RentalRepository>();
+builder.Services.AddScoped<IRatingRepository, RatingRepository>();
+builder.Services.AddScoped<IClothingRepository, ClothingRepository>();
+
+
 // Services
 builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
+builder.Services.AddScoped<IRentalService, RentalService>();
+builder.Services.AddScoped<IRatingService, RatingService>();
+builder.Services.AddScoped<IClothingService, ClothingService>();
+builder.Services.AddScoped<IClothingService, ClothingService>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IReportService, ReportService>();
+
+
+
+
 // JWT config - negócio do login
 var jwt = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwt["Key"]!);
@@ -42,6 +57,8 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddScoped<IClothingRepository, ClothingRepository>();
+
 
 var app = builder.Build();
 

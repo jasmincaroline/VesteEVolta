@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using VesteEVolta.Models;
 using VesteEVolta.DTO;
@@ -18,6 +19,7 @@ public class CategoriesController : ControllerBase
         _context = context;
     }
 
+ 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -38,6 +40,7 @@ public class CategoriesController : ControllerBase
         return Ok(category);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CategoryRequestDto dto)
     {
@@ -65,6 +68,7 @@ public class CategoriesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = category.CategoryId }, category);
     }
 
+    [Authorize]
     [HttpPut("{id:guid}")] //Atualiza uma categoria existente
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] CategoryRequestDto dto)
     {
@@ -96,6 +100,7 @@ public class CategoriesController : ControllerBase
         return Ok(category);
     }
 
+    [Authorize]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {

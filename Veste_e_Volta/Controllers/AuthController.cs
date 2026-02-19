@@ -45,6 +45,12 @@ public class AuthController : ControllerBase
         user.PasswordHash = _hasher.HashPassword(user, dto.Password);
 
         _context.TbUsers.Add(user);
+
+        if (dto.ProfileType == "Owner")
+        {
+            _context.TbOwners.Add(new TbOwner { UserId = user.Id });
+        }
+            
         _context.SaveChanges();
 
         return Created("", new { user.Id, user.Name, user.Email, user.ProfileType });
