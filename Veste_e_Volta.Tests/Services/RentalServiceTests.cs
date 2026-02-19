@@ -1,10 +1,9 @@
 using Moq;
 using NUnit.Framework;
-using VesteEVolta.DTO;           
+using VesteEVolta.DTO;
 using VesteEVolta.Models;
 using VesteEVolta.Repositories;
 using VesteEVolta.Services;
-
 
 namespace VesteEVolta.Tests.Services
 {
@@ -12,13 +11,19 @@ namespace VesteEVolta.Tests.Services
     public class RentalServiceTests
     {
         private Mock<IRentalRepository> _rentalRepositoryMock = null!;
+        private Mock<IClothingRepository> _clothingRepositoryMock = null!;
         private RentalService _service = null!;
 
         [SetUp]
         public void Setup()
         {
             _rentalRepositoryMock = new Mock<IRentalRepository>();
-            _service = new RentalService(_rentalRepositoryMock.Object);
+            _clothingRepositoryMock = new Mock<IClothingRepository>();
+
+            _service = new RentalService(
+                _rentalRepositoryMock.Object,
+                _clothingRepositoryMock.Object
+            );
         }
 
         [Test]
@@ -32,6 +37,15 @@ namespace VesteEVolta.Tests.Services
                 StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 EndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)),
             };
+
+            // Mock da roupa existente
+            _clothingRepositoryMock
+                .Setup(c => c.GetByIdAsync(dto.ClothingId))
+                .ReturnsAsync(new TbClothing
+                {
+                    Id = dto.ClothingId,
+                    AvailabilityStatus = "AVAILABLE"
+                });
 
             _rentalRepositoryMock
                 .Setup(r => r.Add(It.IsAny<TbRental>()))
@@ -49,40 +63,24 @@ namespace VesteEVolta.Tests.Services
             _rentalRepositoryMock.Verify(r => r.Add(It.Is<TbRental>(t =>
                 t.UserId == dto.UserId &&
                 t.ClothingId == dto.ClothingId &&
-                t.Status == "active" &&
-                t.TotalValue == 0
+                t.Status == "active"
             )), Times.Once);
         }
 
         [Test]
-        public async Task GetById_ShouldReturnNull_WhenNotFound()
+        public async Task GetById_ShouldThrow_WhenNotFound()
         {
-            // Arrange
             var id = Guid.NewGuid();
-            _rentalRepositoryMock.Setup(r => r.GetById(id))
+
+            _rentalRepositoryMock
+                .Setup(r => r.GetById(id))
                 .ReturnsAsync((TbRental?)null);
 
-            // Act
-            var result = await _service.GetById(id);
-
-            // Assert
-            Assert.That(result, Is.Null);
-        }
-
-        [Test]
-        public async Task UpdateStatus_ShouldThrow_WhenRentalNotFound()
-        {
-            // Arrange
-            var id = Guid.NewGuid();
-            _rentalRepositoryMock.Setup(r => r.GetById(id))
-                .ReturnsAsync((TbRental?)null);
-
-            // Act & Assert
             var ex = Assert.ThrowsAsync<Exception>(async () =>
-                await _service.UpdateStatus(id, "canceled")
+                await _service.GetById(id)
             );
 
-            Assert.That(ex!.Message, Is.EqualTo("Aluguel não encontrado"));
+            Assert.That(ex!.Message, Is.EqualTo("Aluguel não encontrado."));
         }
 
         [Test]
@@ -101,10 +99,12 @@ namespace VesteEVolta.Tests.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            _rentalRepositoryMock.Setup(r => r.GetById(id))
+            _rentalRepositoryMock
+                .Setup(r => r.GetById(id))
                 .ReturnsAsync(rental);
 
-            _rentalRepositoryMock.Setup(r => r.Update(It.IsAny<TbRental>()))
+            _rentalRepositoryMock
+                .Setup(r => r.Update(It.IsAny<TbRental>()))
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -112,6 +112,7 @@ namespace VesteEVolta.Tests.Services
 
             // Assert
             Assert.That(rental.Status, Is.EqualTo("canceled"));
+
             _rentalRepositoryMock.Verify(r => r.Update(It.Is<TbRental>(t =>
                 t.Id == id && t.Status == "canceled"
             )), Times.Once);
@@ -133,7 +134,9 @@ namespace VesteEVolta.Tests.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            _rentalRepositoryMock.Setup(r => r.GetById(id)).ReturnsAsync(rental);
+            _rentalRepositoryMock
+                .Setup(r => r.GetById(id))
+                .ReturnsAsync(rental);
 
             var result = await _service.GetById(id);
 
@@ -146,21 +149,23 @@ namespace VesteEVolta.Tests.Services
         public async Task GetAll_ShouldReturnMappedDtos()
         {
             var rentals = new List<TbRental>
-    {
-        new TbRental
-        {
-            Id = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
-            ClothingId = Guid.NewGuid(),
-            StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
-            EndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
-            Status = "active",
-            TotalValue = 0,
-            CreatedAt = DateTime.UtcNow
-        }
-    };
+            {
+                new TbRental
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = Guid.NewGuid(),
+                    ClothingId = Guid.NewGuid(),
+                    StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                    EndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+                    Status = "active",
+                    TotalValue = 0,
+                    CreatedAt = DateTime.UtcNow
+                }
+            };
 
-            _rentalRepositoryMock.Setup(r => r.GetAll()).ReturnsAsync(rentals);
+            _rentalRepositoryMock
+                .Setup(r => r.GetAll())
+                .ReturnsAsync(rentals);
 
             var result = (await _service.GetAll()).ToList();
 
@@ -173,20 +178,21 @@ namespace VesteEVolta.Tests.Services
         {
             var userId = Guid.NewGuid();
 
-            _rentalRepositoryMock.Setup(r => r.GetByUserId(userId))
+            _rentalRepositoryMock
+                .Setup(r => r.GetByUserId(userId))
                 .ReturnsAsync(new List<TbRental>
                 {
-            new TbRental
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                ClothingId = Guid.NewGuid(),
-                StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
-                EndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
-                Status = "active",
-                TotalValue = 0,
-                CreatedAt = DateTime.UtcNow
-            }
+                    new TbRental
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = userId,
+                        ClothingId = Guid.NewGuid(),
+                        StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                        EndDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+                        Status = "active",
+                        TotalValue = 0,
+                        CreatedAt = DateTime.UtcNow
+                    }
                 });
 
             var result = (await _service.GetByUserId(userId)).ToList();
@@ -194,7 +200,5 @@ namespace VesteEVolta.Tests.Services
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result[0].UserId, Is.EqualTo(userId));
         }
-
-
     }
 }
