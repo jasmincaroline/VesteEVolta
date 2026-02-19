@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using VesteEVolta.Models;
 using VesteEVolta.Services;
+using VesteEVolta.Repositories;
 
 namespace VesteEVolta.Tests.Services
 {
@@ -12,13 +13,15 @@ namespace VesteEVolta.Tests.Services
     public class RentalServiceTests
     {
         private Mock<IRentalRepository> _rentalRepoMock = null!;
+        private Mock<IClothingRepository> _clothingRepoMock = null!;
         private RentalService _rentalService = null!;
-
+    
         [SetUp]
         public void Setup()
         {
             _rentalRepoMock = new Mock<IRentalRepository>();
-            _rentalService = new RentalService(_rentalRepoMock.Object);
+            _clothingRepoMock = new Mock<IClothingRepository>();
+            _rentalService = new RentalService(_rentalRepoMock.Object, _clothingRepoMock.Object);
         }
 
         [Test]

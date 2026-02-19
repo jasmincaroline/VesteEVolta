@@ -15,6 +15,7 @@
           <Exclude>[VesteEVolta]VesteEVolta.Repositories.RatingRepository*</Exclude>
           <Exclude>[VesteEVolta]VesteEVolta.Repositories.*</Exclude>
           <ExcludeByAttribute>^ExcludeFromCodeCoverageAttribute$</ExcludeByAttribute>
+          <Exclude>[VesteEVolta]Program</Exclude>
 
         </Configuration>
       </DataCollector>
