@@ -1,6 +1,9 @@
 using VesteEVolta.Application.DTOs;
 using VesteEVolta.Models;
 using System.Text;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 public class RatingService : IRatingService
 {
@@ -112,4 +115,49 @@ public class RatingService : IRatingService
         var csvContent = string.Join(Environment.NewLine, csvLines);
         return Encoding.UTF8.GetBytes(csvContent);
     }
+    public async Task<byte[]> GeneratePdfReportAsync()
+{
+    var ratings = await _ratingRepository.GetAll();
+
+    // Cria o PDF usando QuestPDF
+    var pdfBytes = Document.Create(container =>
+    {
+        container.Page(page =>
+        {
+            page.Size(PageSizes.A4);
+            page.Margin(20);
+            page.Content().Column(column =>
+            {
+                column.Item().Text("Rating Report").FontSize(20).Bold().AlignCenter();
+
+                column.Item().LineHorizontal(1);
+
+                // Cabeçalho da tabela
+                column.Item().Row(row =>
+                {
+                    row.RelativeItem().Text("Id").Bold();
+                    row.RelativeItem().Text("UserId").Bold();
+                    row.RelativeItem().Text("ClothingId").Bold();
+                    row.RelativeItem().Text("Rating").Bold();
+                    row.RelativeItem().Text("Comment").Bold();
+                });
+
+                // Linhas da tabela
+                foreach (var r in ratings)
+                {
+                    column.Item().Row(row =>
+                    {
+                        row.RelativeItem().Text(r.Id.ToString());
+                        row.RelativeItem().Text(r.UserId.ToString());
+                        row.RelativeItem().Text(r.ClothingId.ToString());
+                        row.RelativeItem().Text(r.Rating.ToString());
+                        row.RelativeItem().Text(r.Comment ?? "");
+                    });
+                }
+            });
+        });
+    }).GeneratePdf();
+
+    return pdfBytes;
+}
 }

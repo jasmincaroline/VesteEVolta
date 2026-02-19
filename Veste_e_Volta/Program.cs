@@ -5,8 +5,13 @@ using System.Text;
 using VesteEVolta.Models;
 using VesteEVolta.Repositories;
 using VesteEVolta.Services;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Licenses
+QuestPDF.Settings.License = LicenseType.Community;
 
 //Controllers
 builder.Services.AddControllers();
@@ -32,8 +37,6 @@ builder.Services.AddScoped<IClothingService, ClothingService>();
 builder.Services.AddScoped<IClothingService, ClothingService>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
-
-
 
 
 // JWT config - negócio do login
