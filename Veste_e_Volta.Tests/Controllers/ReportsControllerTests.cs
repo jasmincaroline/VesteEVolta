@@ -56,7 +56,7 @@ namespace Veste_e_Volta.Tests.Reports
 
         [Test]
         public async Task GetRentalsCsv_WhenFromGreaterThanTo_ReturnsBadRequest()
-        {
+        {               
             using var ctx = CreateInMemoryContext(nameof(GetRentalsCsv_WhenFromGreaterThanTo_ReturnsBadRequest));
             var controller = CreateController(ctx, OwnerPrincipal(Guid.NewGuid()));
 
