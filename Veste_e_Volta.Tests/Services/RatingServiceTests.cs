@@ -1,8 +1,4 @@
 using Moq;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using VesteEVolta.Application.DTOs;
 using VesteEVolta.Models;
 
