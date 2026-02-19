@@ -5,7 +5,7 @@ using VesteEVolta.Services;
 namespace VesteEVolta.Controllers;
 
 [ApiController]
-[Route("payment")]
+[Route("payments")]
 public class PaymentController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
@@ -15,14 +15,14 @@ public class PaymentController : ControllerBase
         _paymentService = paymentService;
     }
 
-    [HttpGet("rentals/{rentalId}/payments")]
-    public async Task<IActionResult> GetByRental(Guid rentalId)
+    [HttpGet]
+    public async Task<IActionResult> GetByRental([FromQuery] Guid rentalId)
     {
         var payments = await _paymentService.GetByRentalId(rentalId);
         return Ok(payments);
     }
 
-    [HttpGet("payments/{id}")]
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var payment = await _paymentService.GetById(id);
@@ -33,13 +33,12 @@ public class PaymentController : ControllerBase
         return Ok(payment);
     }
 
-    [HttpPost("rentals/{rentalId}/payments")]
-    public async Task<IActionResult> Create(Guid rentalId,
-                                           [FromBody] CreatePaymentDto dto)
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreatePaymentDto dto)
     {
         try
         {
-            var payment = await _paymentService.Create(rentalId, dto);
+            var payment = await _paymentService.Create(dto.RentalId, dto);
 
             return CreatedAtAction(
                 nameof(GetById),

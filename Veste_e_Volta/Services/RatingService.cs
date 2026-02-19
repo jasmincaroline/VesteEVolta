@@ -71,7 +71,21 @@ public class RatingService : IRatingService
             CreatedAt = r.CreatedAt
         }).ToList();
     }
-
+    public async Task<IEnumerable<RatingDto>> GetAllAsync()
+    {
+        var ratings = await _ratingRepository.GetAll();
+        return ratings.Select(r => new RatingDto
+        {
+            Id = r.Id,
+            UserId = r.UserId,
+            RentId = r.RentId,
+            ClothingId = r.ClothingId,
+            Rating = r.Rating,
+            Comment = r.Comment,
+            Date = r.Date,
+            CreatedAt = r.CreatedAt
+        });
+    }
     public async Task<List<RatingDto>> GetByUserAsync(Guid userId)
     {
         var ratings = await _ratingRepository.GetByUserIdAsync(userId);

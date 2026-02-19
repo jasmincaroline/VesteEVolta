@@ -1,19 +1,31 @@
 using VesteEVolta.Models;
 using VesteEVolta.DTO;
+using VesteEVolta.Repositories;
 
 namespace VesteEVolta.Services;
 
 public class RentalService : IRentalService
 {
     private readonly IRentalRepository _rentalRepository;
+    private readonly IClothingRepository _clothingRepository;
 
-    public RentalService(IRentalRepository rentalRepository)
+    public RentalService(IRentalRepository rentalRepository, IClothingRepository clothingRepository)
     {
         _rentalRepository = rentalRepository;
+        _clothingRepository = clothingRepository;
     }
 
     public async Task<RentalResponseDTO> Create(RentalDTO dto)
     {
+        // Busca a roupa para obter o preço
+        var clothing = await _clothingRepository.GetByIdAsync(dto.ClothingId);
+        if (clothing == null)
+            throw new Exception("Roupa não encontrada.");
+
+        // Calcula o valor total (dias * preço por dia)
+        var days = dto.EndDate.DayNumber - dto.StartDate.DayNumber;
+        var totalValue = days * clothing.RentPrice;
+
         var rental = new TbRental
         {
             Id = Guid.NewGuid(),
@@ -22,7 +34,7 @@ public class RentalService : IRentalService
             StartDate = dto.StartDate,
             EndDate = dto.EndDate,
             Status = "active",
-            TotalValue = 0,
+            TotalValue = totalValue,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -69,6 +81,18 @@ public class RentalService : IRentalService
         rental.Status = status;
 
         await _rentalRepository.Update(rental);
+    }
+
+    public async Task<RentalResponseDTO> Delete(Guid id)
+    {
+        var rental = await _rentalRepository.GetById(id);
+
+        if (rental == null)
+            throw new Exception("Aluguel não encontrado");
+
+        await _rentalRepository.Delete(id);
+        
+        return MapToDTO(rental);
     }
 
     private static RentalResponseDTO MapToDTO(TbRental rental)

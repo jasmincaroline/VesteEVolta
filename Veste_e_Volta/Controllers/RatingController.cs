@@ -5,7 +5,7 @@ using System.Text;
 namespace VesteEVolta.Controllers;
 
 [ApiController]
-[Route("rating")]
+[Route("ratings")]
 public class RatingController : ControllerBase
 {
     private readonly IRatingService _ratingService;
@@ -20,6 +20,13 @@ public class RatingController : ControllerBase
     {
         await _ratingService.CreateAsync(dto);
         return Ok("Avaliação criada com sucesso.");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var ratings = await _ratingService.GetAllAsync();
+        return Ok(ratings);
     }
 
     [HttpGet("clothing/{clothingId}")]
