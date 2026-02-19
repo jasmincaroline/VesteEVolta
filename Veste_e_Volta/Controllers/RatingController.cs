@@ -48,4 +48,16 @@ public class RatingController : ControllerBase
         "rating-report.csv"
         );
     }
+    
+    [HttpGet("report/pdf")]
+    public async Task<IActionResult> GeneratePdfReport()
+    {
+    var pdfContent = await _ratingService.GeneratePdfReportAsync();
+
+    return File(
+        pdfContent,
+        "application/pdf",
+        "rating-report.pdf"
+    );
+    }
 }

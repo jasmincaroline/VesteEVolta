@@ -7,5 +7,7 @@ public interface IRatingService
     Task<List<RatingDto>> GetByUserAsync(Guid userId);
     Task DeleteAsync(Guid id, Guid userId);
     Task<byte[]> GenerateReportAsync();
+    Task<byte[]> GeneratePdfReportAsync();
+
 
 }
