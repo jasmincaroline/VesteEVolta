@@ -1,5 +1,6 @@
    public class CreatePaymentDto
     {
+        public Guid RentalId { get; set; }
         public string PaymentMethod { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public string PaymentStatus { get; set; } = "pending";

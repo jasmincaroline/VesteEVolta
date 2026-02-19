@@ -12,4 +12,5 @@ public interface IRentalService
     Task<IEnumerable<RentalResponseDTO>> GetByUserId(Guid userId);
     Task<IEnumerable<RentalResponseDTO>> GetByClothingId(Guid clothingId);
     Task UpdateStatus(Guid id, string status);
+    Task<RentalResponseDTO> Delete(Guid id);
 }

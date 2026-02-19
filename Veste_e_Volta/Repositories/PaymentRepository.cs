@@ -16,7 +16,7 @@ public class PaymentRepository : IPaymentRepository
             .ToListAsync();
     }
 
-    public async Task<TbPayment> GetById(Guid id)
+    public async Task<TbPayment?> GetById(Guid id)
     {
         return await _context.TbPayments.FindAsync(id);
     }
