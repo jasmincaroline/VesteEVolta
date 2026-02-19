@@ -1,5 +1,4 @@
 using VesteEVolta.Models;
-using VesteEVolta.Repositories;
 using VesteEVolta.DTO;
 
 namespace VesteEVolta.Services;
@@ -32,10 +31,14 @@ public class RentalService : IRentalService
         return MapToDTO(rental);
     }
 
-    public async Task<RentalResponseDTO?> GetById(Guid id)
+    public async Task<RentalResponseDTO> GetById(Guid id)
     {
-        var rental = await _rentalRepository.GetById(id);
-        return rental == null ? null : MapToDTO(rental);
+    var rental = await _rentalRepository.GetById(id);
+
+    if (rental == null)
+        throw new Exception("Aluguel não encontrado.");
+
+    return MapToDTO(rental);
     }
 
     public async Task<IEnumerable<RentalResponseDTO>> GetAll()
