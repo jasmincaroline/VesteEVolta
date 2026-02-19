@@ -18,7 +18,7 @@ public class PaymentService : IPaymentService
         return await _paymentRepository.GetByRentalId(rentalId);
     }
 
-    public async Task<TbPayment> GetById(Guid id)
+    public async Task<TbPayment?> GetById(Guid id)
     {
         return await _paymentRepository.GetById(id);
     }

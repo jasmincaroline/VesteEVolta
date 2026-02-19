@@ -50,16 +50,18 @@ public class CategoriesController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.Name))
             return BadRequest("Nome é obrigatório, não esquece :)");
 
+        var trimmedName = dto.Name.Trim();
+
         // 409 - nome duplicado
         var exists = await _context.TbCategories
-            .AnyAsync(c => c.Name.ToLower() == dto.Name.ToLower());
+            .AnyAsync(c => c.Name.ToLower() == trimmedName.ToLower());
         if (exists)
             return Conflict("Já existe uma categoria com esse nome, escolha outro nome, por favor :)");
 
         var category = new TbCategory
         {
             CategoryId = Guid.NewGuid(),
-            Name = dto.Name
+            Name = trimmedName
         };
 
         _context.TbCategories.Add(category);

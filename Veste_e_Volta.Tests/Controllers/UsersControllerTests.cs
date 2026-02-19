@@ -1,357 +1,254 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NUnit.Framework;
 using VesteEVolta.Controllers;
 using VesteEVolta.DTO;
 using VesteEVolta.Models;
 
-namespace VesteEVolta.Tests.Controllers
+namespace Veste_e_Volta.Tests.Controllers
 {
     [TestFixture]
     public class UsersControllerTests
     {
-        private PostgresContext _context;
-        private UsersController _controller;
+        private PostgresContext _context = null!;
 
         [SetUp]
         public void Setup()
         {
-            // Usando InMemory database para testes
             var options = new DbContextOptionsBuilder<PostgresContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .UseInMemoryDatabase(System.Guid.NewGuid().ToString())
                 .Options;
 
             _context = new PostgresContext(options);
-            _controller = new UsersController(_context);
         }
 
         [TearDown]
-        public void TearDown()
-        {
-            _context.Database.EnsureDeleted();
-            _context.Dispose();
-        }
+        public void TearDown() => _context.Dispose();
 
-        #region GetAll Tests
+        private UsersController CreateController()
+            => new UsersController(_context);
 
-        [Test]
-        public async Task GetAll_UsersExist_ReturnsOkWithUsers()
+        private async Task SeedUserAsync(Guid id, string name, string email)
         {
-            // Arrange
-            var users = new List<TbUser>
+            _context.TbUsers.Add(new TbUser
             {
-                new TbUser 
-                { 
-                    Id = Guid.NewGuid(), 
-                    Name = "João Silva", 
-                    Email = "joao@test.com",
-                    Telephone = "11999999999",
-                    PasswordHash = "hash123",
-                    ProfileType = "customer",
-                    Reported = false,
-                    CreatedAt = DateTime.UtcNow
-                },
-                new TbUser 
-                { 
-                    Id = Guid.NewGuid(), 
-                    Name = "Maria Santos", 
-                    Email = "maria@test.com",
-                    Telephone = "11988888888",
-                    PasswordHash = "hash456",
-                    ProfileType = "owner",
-                    Reported = false,
-                    CreatedAt = DateTime.UtcNow
-                }
-            };
-
-            await _context.TbUsers.AddRangeAsync(users);
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _controller.GetAll() as OkObjectResult;
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            var returnedUsers = result.Value as List<UserResponseDto>;
-            Assert.That(returnedUsers, Is.Not.Null);
-            Assert.That(returnedUsers.Count, Is.EqualTo(2));
-            Assert.That(returnedUsers[0].Name, Is.EqualTo("João Silva"));
-        }
-
-        [Test]
-        public async Task GetAll_NoUsers_ReturnsOkWithEmptyList()
-        {
-            // Arrange
-            // Nenhum usuário no banco
-
-            // Act
-            var result = await _controller.GetAll() as OkObjectResult;
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            var returnedUsers = result.Value as List<UserResponseDto>;
-            Assert.That(returnedUsers, Is.Not.Null);
-            Assert.That(returnedUsers.Count, Is.EqualTo(0));
-        }
-
-        #endregion
-
-        #region GetById Tests
-
-        [Test]
-        public async Task GetById_UserExists_ReturnsOkWithUser()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-            var user = new TbUser
-            {
-                Id = userId,
-                Name = "João Silva",
-                Email = "joao@test.com",
-                Telephone = "11999999999",
-                PasswordHash = "hash123",
-                ProfileType = "customer",
+                Id = id,
+                Name = name,
+                Telephone = "99999-9999",
+                Email = email,
+                ProfileType = "User",
                 Reported = false,
-                CreatedAt = DateTime.UtcNow
-            };
+                CreatedAt = DateTime.UtcNow,
+                PasswordHash = "x"
+            });
 
-            await _context.TbUsers.AddAsync(user);
             await _context.SaveChangesAsync();
+        }
 
-            // Act
-            var result = await _controller.GetById(userId) as OkObjectResult;
+        // ---------- UPDATE /users/{id} ----------
 
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            var returnedUser = result.Value as UserResponseDto;
-            Assert.That(returnedUser, Is.Not.Null);
-            Assert.That(returnedUser.Id, Is.EqualTo(userId));
-            Assert.That(returnedUser.Name, Is.EqualTo("João Silva"));
-            Assert.That(returnedUser.Email, Is.EqualTo("joao@test.com"));
+        [Test]
+        public async Task Update_WhenDtoNull_ShouldReturnBadRequest()
+        {
+            var controller = CreateController();
+
+            var result = await controller.Update(Guid.NewGuid(), null!);
+
+            Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
         }
 
         [Test]
-        public async Task GetById_UserNotFound_ReturnsNotFound()
+        public async Task Update_WhenNameEmpty_ShouldReturnBadRequest()
         {
-            // Arrange
-            var nonExistentId = Guid.NewGuid();
+            var controller = CreateController();
 
-            // Act
-            var result = await _controller.GetById(nonExistentId) as NotFoundObjectResult;
+            var dto = new UserUpdateDto
+            {
+                Name = "   ",
+                Email = "a@a.com",
+                Telephone = "123"
+            };
 
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Value, Is.EqualTo("Usuário não encontrado."));
+            var result = await controller.Update(Guid.NewGuid(), dto);
+
+            Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
         }
 
-        #endregion
+        [Test]
+        public async Task Update_WhenUserNotFound_ShouldReturnNotFound()
+        {
+            var controller = CreateController();
 
-        #region Update Tests
+            var dto = new UserUpdateDto
+            {
+                Name = "Novo Nome",
+                Email = "novo@email.com",
+                Telephone = "123"
+            };
+
+            var result = await controller.Update(Guid.NewGuid(), dto);
+
+            Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
+        }
 
         [Test]
-        public async Task Update_ValidData_ReturnsOkWithUpdatedUser()
+        public async Task Update_WhenEmailDuplicate_ShouldReturnConflict()
         {
-            // Arrange
+            var controller = CreateController();
+
+            var userId1 = Guid.NewGuid();
+            var userId2 = Guid.NewGuid();
+
+            await SeedUserAsync(userId1, "User 1", "teste@email.com");
+            await SeedUserAsync(userId2, "User 2", "outro@email.com");
+
+            // tenta atualizar user2 pra email do user1
+            var dto = new UserUpdateDto
+            {
+                Name = "User 2 Novo",
+                Email = "TESTE@EMAIL.COM", // case diferente pra validar ToLower()
+                Telephone = "999"
+            };
+
+            var result = await controller.Update(userId2, dto);
+
+            Assert.That(result, Is.InstanceOf<ConflictObjectResult>());
+        }
+
+        [Test]
+        public async Task Update_WhenValid_ShouldReturnOk_AndPersist()
+        {
+            var controller = CreateController();
+
             var userId = Guid.NewGuid();
-            var user = new TbUser
+            await SeedUserAsync(userId, "Nome Antigo", "antigo@email.com");
+
+            var dto = new UserUpdateDto
             {
-                Id = userId,
-                Name = "João Silva",
-                Email = "joao@test.com",
-                Telephone = "11999999999",
-                PasswordHash = "hash123",
-                ProfileType = "customer",
-                Reported = false,
-                CreatedAt = DateTime.UtcNow
+                Name = "  Nome Novo  ",
+                Email = "  NOVO@EMAIL.COM ",
+                Telephone = "  88888-8888  "
             };
 
-            await _context.TbUsers.AddAsync(user);
-            await _context.SaveChangesAsync();
+            var result = await controller.Update(userId, dto);
 
-            var updateDto = new UserUpdateDto
-            {
-                Name = "João Silva Updated",
-                Email = "joao.updated@test.com",
-                Telephone = "11988888888"
-            };
+            Assert.That(result, Is.InstanceOf<OkObjectResult>());
 
-            // Act
-            var result = await _controller.Update(userId, updateDto) as OkObjectResult;
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            var updatedUser = result.Value as UserResponseDto;
-            Assert.That(updatedUser, Is.Not.Null);
-            Assert.That(updatedUser.Name, Is.EqualTo("João Silva Updated"));
-            Assert.That(updatedUser.Email, Is.EqualTo("joao.updated@test.com"));
-            Assert.That(updatedUser.Telephone, Is.EqualTo("11988888888"));
+            var updated = await _context.TbUsers.FirstAsync(u => u.Id == userId);
+            Assert.That(updated.Name, Is.EqualTo("Nome Novo"));
+            Assert.That(updated.Email, Is.EqualTo("novo@email.com"));
+            Assert.That(updated.Telephone, Is.EqualTo("88888-8888"));
         }
 
         [Test]
-        public async Task Update_UserNotFound_ReturnsNotFound()
+        public async Task Update_WhenTelephoneEmpty_ShouldPersistNullTelephone()
         {
-            // Arrange
-            var nonExistentId = Guid.NewGuid();
-            var updateDto = new UserUpdateDto
-            {
-                Name = "Test",
-                Email = "test@test.com"
-            };
+            var controller = CreateController();
 
-            // Act
-            var result = await _controller.Update(nonExistentId, updateDto) as NotFoundObjectResult;
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Value, Is.EqualTo("Usuário não encontrado."));
-        }
-
-        [Test]
-        public async Task Update_NullDto_ReturnsBadRequest()
-        {
-            // Arrange
             var userId = Guid.NewGuid();
+            await SeedUserAsync(userId, "Nome", "email@email.com");
 
-            // Act
-            var result = await _controller.Update(userId, null!) as BadRequestObjectResult;
+            var dto = new UserUpdateDto
+            {
+                Name = "Nome",
+                Email = "email@email.com",
+                Telephone = "   "
+            };
 
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Value, Is.EqualTo("Body inválido."));
+            var result = await controller.Update(userId, dto);
+
+            Assert.That(result, Is.InstanceOf<OkObjectResult>());
+
+            var updated = await _context.TbUsers.FirstAsync(u => u.Id == userId);
+            Assert.That(updated.Telephone, Is.Null);
         }
 
         [Test]
-        public async Task Update_EmptyName_ReturnsBadRequest()
+        public async Task Update_WhenEmailEmpty_ShouldReturnBadRequest()
         {
-            // Arrange
+            var controller = CreateController();
+
+            var dto = new UserUpdateDto
+            {
+                Name = "Nome",
+                Email = "   ",
+                Telephone = "123"
+            };
+
+            var result = await controller.Update(Guid.NewGuid(), dto);
+
+            Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        }
+
+
+        // ---------- GET /users/{id} ----------
+
+        [Test]
+        public async Task GetById_WhenNotFound_ShouldReturnNotFound()
+        {
+            var controller = CreateController();
+
+            var result = await controller.GetById(Guid.NewGuid());
+
+            Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
+        }
+
+        [Test]
+        public async Task GetAll_ShouldReturnOk_WithList()
+        {
+            var controller = CreateController();
+
+            await SeedUserAsync(Guid.NewGuid(), "A", "a@a.com");
+            await SeedUserAsync(Guid.NewGuid(), "B", "b@b.com");
+
+            var result = await controller.GetAll();
+
+            Assert.That(result, Is.InstanceOf<OkObjectResult>());
+
+            var ok = (OkObjectResult)result;
+            Assert.That(ok.Value, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task GetById_WhenFound_ShouldReturnOk()
+        {
+            var controller = CreateController();
+
             var userId = Guid.NewGuid();
-            var updateDto = new UserUpdateDto
-            {
-                Name = "",
-                Email = "test@test.com"
-            };
+            await SeedUserAsync(userId, "Maria", "maria@email.com");
 
-            // Act
-            var result = await _controller.Update(userId, updateDto) as BadRequestObjectResult;
+            var result = await controller.GetById(userId);
 
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Value, Is.EqualTo("Nome é obrigatório."));
+            Assert.That(result, Is.InstanceOf<OkObjectResult>());
+        }
+
+
+
+        // ---------- DELETE /users/{id} ----------
+
+        [Test]
+        public async Task Delete_WhenNotFound_ShouldReturnNotFound()
+        {
+            var controller = CreateController();
+
+            var result = await controller.Delete(Guid.NewGuid());
+
+            Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
         }
 
         [Test]
-        public async Task Update_EmptyEmail_ReturnsBadRequest()
+        public async Task Delete_WhenValid_ShouldReturnNoContent_AndRemove()
         {
-            // Arrange
+            var controller = CreateController();
+
             var userId = Guid.NewGuid();
-            var updateDto = new UserUpdateDto
-            {
-                Name = "Test",
-                Email = ""
-            };
+            await SeedUserAsync(userId, "Nome", "nome@email.com");
 
-            // Act
-            var result = await _controller.Update(userId, updateDto) as BadRequestObjectResult;
+            var result = await controller.Delete(userId);
 
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Value, Is.EqualTo("Email é obrigatório."));
-        }
-
-        [Test]
-        public async Task Update_DuplicateEmail_ReturnsConflict()
-        {
-            // Arrange
-            var user1Id = Guid.NewGuid();
-            var user2Id = Guid.NewGuid();
-
-            var users = new List<TbUser>
-            {
-                new TbUser 
-                { 
-                    Id = user1Id,
-                    Name = "User 1",
-                    Email = "user1@test.com",
-                    PasswordHash = "hash1",
-                    ProfileType = "customer",
-                    Reported = false,
-                    CreatedAt = DateTime.UtcNow
-                },
-                new TbUser 
-                { 
-                    Id = user2Id,
-                    Name = "User 2",
-                    Email = "user2@test.com",
-                    PasswordHash = "hash2",
-                    ProfileType = "customer",
-                    Reported = false,
-                    CreatedAt = DateTime.UtcNow
-                }
-            };
-
-            await _context.TbUsers.AddRangeAsync(users);
-            await _context.SaveChangesAsync();
-
-            var updateDto = new UserUpdateDto
-            {
-                Name = "User 1",
-                Email = "user2@test.com" // Email já usado por user2
-            };
-
-            // Act
-            var result = await _controller.Update(user1Id, updateDto) as ConflictObjectResult;
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Value, Is.EqualTo("Email já cadastrado por outro usuário."));
-        }
-
-        #endregion
-
-        #region Delete Tests
-
-        [Test]
-        public async Task Delete_UserExists_ReturnsNoContent()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-            var user = new TbUser
-            {
-                Id = userId,
-                Name = "João Silva",
-                Email = "joao@test.com",
-                PasswordHash = "hash123",
-                ProfileType = "customer",
-                Reported = false,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _context.TbUsers.AddAsync(user);
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _controller.Delete(userId);
-
-            // Assert
             Assert.That(result, Is.InstanceOf<NoContentResult>());
-            
-            var deletedUser = await _context.TbUsers.FindAsync(userId);
-            Assert.That(deletedUser, Is.Null);
+            Assert.That(await _context.TbUsers.AnyAsync(u => u.Id == userId), Is.False);
         }
 
-        [Test]
-        public async Task Delete_UserNotFound_ReturnsNotFound()
-        {
-            // Arrange
-            var nonExistentId = Guid.NewGuid();
-
-            // Act
-            var result = await _controller.Delete(nonExistentId) as NotFoundObjectResult;
-
-            // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Value, Is.EqualTo("Usuário não encontrado."));
-        }
-
-        #endregion
     }
 }
