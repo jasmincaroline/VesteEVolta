@@ -19,6 +19,7 @@ namespace VesteEVolta.Tests.Controllers
             _controller = new RentalController(_rentalServiceMock.Object);
         }
 
+        #region Create Tests
 
         [Test]
         public async Task Create_ValidDto_ReturnsCreatedRental()
@@ -56,6 +57,9 @@ namespace VesteEVolta.Tests.Controllers
             _rentalServiceMock.Verify(s => s.Create(dto), Times.Once);
         }
 
+        #endregion
+
+        #region GetAll Tests
 
         [Test]
         public async Task GetAll_RentalsExist_ReturnsOkWithRentals()
@@ -77,7 +81,9 @@ namespace VesteEVolta.Tests.Controllers
             _rentalServiceMock.Verify(s => s.GetAll(), Times.Once);
         }
 
+        #endregion
 
+        #region GetById Tests
 
         [Test]
         public async Task GetById_RentalExists_ReturnsOkWithRental()
@@ -115,6 +121,10 @@ namespace VesteEVolta.Tests.Controllers
             _rentalServiceMock.Verify(s => s.GetById(rentalId), Times.Once);
         }
 
+        #endregion
+
+        #region UpdateStatus Tests
+
         [Test]
         public async Task UpdateStatus_ValidStatus_ReturnsNoContent()
         {
@@ -147,6 +157,9 @@ namespace VesteEVolta.Tests.Controllers
             _rentalServiceMock.Verify(s => s.UpdateStatus(rentalId, status), Times.Once);
         }
 
+        #endregion
+
+        #region GetByUser Tests
 
         [Test]
         public async Task GetByUser_RentalsExist_ReturnsOkWithRentals()
@@ -169,6 +182,10 @@ namespace VesteEVolta.Tests.Controllers
             _rentalServiceMock.Verify(s => s.GetByUserId(userId), Times.Once);
         }
 
+        #endregion
+
+        #region GetByClothing Tests
+
         [Test]
         public async Task GetByClothing_RentalsExist_ReturnsOkWithRentals()
         {
@@ -189,6 +206,137 @@ namespace VesteEVolta.Tests.Controllers
             Assert.That(result.Value, Is.EqualTo(rentals));
             _rentalServiceMock.Verify(s => s.GetByClothingId(clothingId), Times.Once);
         }
+
+        #endregion
+
+        #region Delete Tests
+
+        [Test]
+        public async Task Delete_ValidId_ReturnsNoContent()
+        {
+            // Arrange
+            var rentalId = Guid.NewGuid();
+            var deletedRental = new RentalResponseDTO 
+            { 
+                Id = rentalId, 
+                Status = "active",
+                TotalValue = 100 
+            };
+
+            _rentalServiceMock
+                .Setup(s => s.Delete(rentalId))
+                .ReturnsAsync(deletedRental);
+
+            // Act
+            var result = await _controller.Delete(rentalId);
+
+            // Assert
+            Assert.That(result, Is.InstanceOf<NoContentResult>());
+            _rentalServiceMock.Verify(s => s.Delete(rentalId), Times.Once);
+        }
+
+        [Test]
+        public void Delete_RentalNotFound_ExceptionPropagates()
+        {
+            // Arrange
+            var rentalId = Guid.NewGuid();
+
+            _rentalServiceMock
+                .Setup(s => s.Delete(rentalId))
+                .ThrowsAsync(new Exception("Aluguel não encontrado"));
+
+            // Act & Assert
+            Assert.That(async () => await _controller.Delete(rentalId),
+                Throws.Exception.TypeOf<Exception>().With.Message.EqualTo("Aluguel não encontrado"));
+            _rentalServiceMock.Verify(s => s.Delete(rentalId), Times.Once);
+        }
+
+        [Test]
+        public void Delete_ServiceThrowsException_ExceptionPropagates()
+        {
+            // Arrange
+            var rentalId = Guid.NewGuid();
+
+            _rentalServiceMock
+                .Setup(s => s.Delete(rentalId))
+                .ThrowsAsync(new Exception("Database error"));
+
+            // Act & Assert
+            Assert.That(async () => await _controller.Delete(rentalId),
+                Throws.Exception.TypeOf<Exception>().With.Message.EqualTo("Database error"));
+            _rentalServiceMock.Verify(s => s.Delete(rentalId), Times.Once);
+        }
+
+        #endregion
+
+        #region Additional Edge Cases
+
+        [Test]
+        public async Task Create_InvalidModelState_ReturnsBadRequest()
+        {
+            // Arrange
+            var dto = new RentalDTO();
+            _controller.ModelState.AddModelError("UserId", "UserId is required");
+
+            // Act
+            var result = await _controller.Create(dto) as BadRequestObjectResult;
+
+            // Assert
+            Assert.That(result, Is.Not.Null);
+            _rentalServiceMock.Verify(s => s.Create(It.IsAny<RentalDTO>()), Times.Never);
+        }
+
+        [Test]
+        public async Task GetAll_NoRentals_ReturnsOkWithEmptyList()
+        {
+            // Arrange
+            var emptyList = new List<RentalResponseDTO>();
+            _rentalServiceMock.Setup(s => s.GetAll()).ReturnsAsync(emptyList);
+
+            // Act
+            var result = await _controller.GetAll() as OkObjectResult;
+
+            // Assert
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Value, Is.EqualTo(emptyList));
+            _rentalServiceMock.Verify(s => s.GetAll(), Times.Once);
+        }
+
+        [Test]
+        public async Task GetByUser_NoRentals_ReturnsOkWithEmptyList()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var emptyList = new List<RentalResponseDTO>();
+            _rentalServiceMock.Setup(s => s.GetByUserId(userId)).ReturnsAsync(emptyList);
+
+            // Act
+            var result = await _controller.GetByUser(userId) as OkObjectResult;
+
+            // Assert
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Value, Is.EqualTo(emptyList));
+            _rentalServiceMock.Verify(s => s.GetByUserId(userId), Times.Once);
+        }
+
+        [Test]
+        public async Task GetByClothing_NoRentals_ReturnsOkWithEmptyList()
+        {
+            // Arrange
+            var clothingId = Guid.NewGuid();
+            var emptyList = new List<RentalResponseDTO>();
+            _rentalServiceMock.Setup(s => s.GetByClothingId(clothingId)).ReturnsAsync(emptyList);
+
+            // Act
+            var result = await _controller.GetByClothing(clothingId) as OkObjectResult;
+
+            // Assert
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Value, Is.EqualTo(emptyList));
+            _rentalServiceMock.Verify(s => s.GetByClothingId(clothingId), Times.Once);
+        }
+
+        #endregion
 
     }
 }

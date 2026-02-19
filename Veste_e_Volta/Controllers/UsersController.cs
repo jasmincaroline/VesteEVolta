@@ -8,7 +8,7 @@ namespace VesteEVolta.Controllers;
 
 [ApiController]
 [Route("users")]
-[Authorize]
+//[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly PostgresContext _context;
