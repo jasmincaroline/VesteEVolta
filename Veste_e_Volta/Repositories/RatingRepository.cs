@@ -46,4 +46,8 @@ public class RatingRepository : IRatingRepository
         _context.TbRatings.Remove(rating);
         await _context.SaveChangesAsync();
     }
+     public async Task<IEnumerable<TbRating>> GetAll()
+        {
+            return await _context.TbRatings.ToListAsync();
+        }
 }

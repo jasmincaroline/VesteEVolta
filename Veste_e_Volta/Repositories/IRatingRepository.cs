@@ -8,4 +8,6 @@ public interface IRatingRepository
     Task<List<TbRating>> GetByClothingIdAsync(Guid clothingId);
     Task<List<TbRating>> GetByUserIdAsync(Guid userId);
     Task DeleteAsync(TbRating rating);
+    Task<IEnumerable<TbRating>> GetAll();
+
 }
