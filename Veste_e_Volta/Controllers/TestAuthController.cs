@@ -22,3 +22,16 @@ public class TestAuthController : ControllerBase
     public IActionResult OnlyUser()
         => Ok("Somente User ✅");
 }
+
+[ApiController]
+[Route("auth")]
+public class DebugAuthController : ControllerBase
+{
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        var claims = User.Claims.Select(c => new { c.Type, c.Value });
+        return Ok(claims);
+    }
+}

@@ -6,7 +6,6 @@ namespace VesteEVolta.Repositories
     {
         List<TbCategory> GetAll();
         TbCategory? GetById(Guid id);
-
         TbCategory? GetByName(string name);
 
         void Add(TbCategory category);
