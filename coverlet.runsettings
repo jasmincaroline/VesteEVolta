@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <RunSettings>
   <DataCollectionRunSettings>
     <DataCollectors>
@@ -7,13 +6,14 @@
         <Configuration>
           <Format>cobertura</Format>
 
-          <!-- Ignora todos os arquivos dentro da pasta Repositories -->
-          <ExcludeByFile>**/Repositories/**/*.cs</ExcludeByFile>
-
-          <!-- Ignora namespace específico -->
+          <ExcludeByFile>**/VesteEVolta/Repositories/**/*.cs</ExcludeByFile>
+          <ExcludeByFile>VesteEVolta/Repositories/**/*.cs;VesteEVolta/Repositories/*/*.cs</ExcludeByFile>
           <Exclude>[VesteEVolta]VesteEVolta.Repositories.*</Exclude>
-
-          <!-- Ignora classes marcadas com [ExcludeFromCodeCoverage] -->
+          <Exclude>[VesteEVolta]VesteEVolta.Repositories.CategoryRepositories*</Exclude>
+          <Exclude>[VesteEVolta]VesteEVolta.Repositories.RentalRepository*</Exclude>
+          <Exclude>[VesteEVolta]VesteEVolta.Repositories.PaymentRepository*</Exclude>
+          <Exclude>[VesteEVolta]VesteEVolta.Repositories.RatingRepository*</Exclude>
+          <Exclude>[VesteEVolta]VesteEVolta.Repositories.*</Exclude>
           <ExcludeByAttribute>^ExcludeFromCodeCoverageAttribute$</ExcludeByAttribute>
 
         </Configuration>

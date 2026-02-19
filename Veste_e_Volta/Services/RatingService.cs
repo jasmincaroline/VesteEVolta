@@ -38,7 +38,7 @@ public class RatingService : IRatingService
             throw new Exception("Este aluguel já foi avaliado.");
 
         if (rent.ClothingId != dto.ClothingId)
-            throw new Exception("Clothing não corresponde ao aluguel.");
+            throw new Exception("Roupa não corresponde ao aluguel.");
 
         var rating = new TbRating
         {
@@ -119,7 +119,6 @@ public class RatingService : IRatingService
 {
     var ratings = await _ratingRepository.GetAll();
 
-    // Cria o PDF usando QuestPDF
     var pdfBytes = Document.Create(container =>
     {
         container.Page(page =>
@@ -132,7 +131,6 @@ public class RatingService : IRatingService
 
                 column.Item().LineHorizontal(1);
 
-                // Cabeçalho da tabela
                 column.Item().Row(row =>
                 {
                     row.RelativeItem().Text("Id").Bold();
@@ -142,7 +140,6 @@ public class RatingService : IRatingService
                     row.RelativeItem().Text("Comment").Bold();
                 });
 
-                // Linhas da tabela
                 foreach (var r in ratings)
                 {
                     column.Item().Row(row =>
