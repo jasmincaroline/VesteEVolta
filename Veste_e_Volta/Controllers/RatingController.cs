@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using VesteEVolta.Application.DTOs;
-using VesteEVolta.Services;
-using VesteEVolta.Models;
+using System.Text;
 
 namespace VesteEVolta.Controllers;
 
@@ -35,5 +34,18 @@ public class RatingController : ControllerBase
     {
         await _ratingService.DeleteAsync(id, userId);
         return NoContent();
+    }
+    [HttpGet("report")]
+    public async Task<IActionResult> GenerateReport()
+    {
+    var fileContent = await _ratingService.GenerateReportAsync();
+
+    var fileBytes = Encoding.UTF8.GetPreamble().Concat(fileContent).ToArray();
+
+    return File(
+        fileBytes,
+        "text/csv",
+        "rating-report.csv"
+        );
     }
 }

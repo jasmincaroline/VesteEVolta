@@ -1,5 +1,6 @@
 using VesteEVolta.Application.DTOs;
 using VesteEVolta.Models;
+using System.Text;
 
 public class RatingService : IRatingService
 {
@@ -96,5 +97,19 @@ public class RatingService : IRatingService
             throw new Exception("Você não pode excluir essa avaliação.");
 
         await _ratingRepository.DeleteAsync(rating);
+    }
+     public async Task<byte[]> GenerateReportAsync()
+    {
+        var ratings = await _ratingRepository.GetAll();
+
+        var csvLines = new List<string> { "Id,UserId,ClothingId,Score,Comment" };
+        foreach (var r in ratings)
+        {
+        var commentEscaped = r.Comment?.Replace("\"", "\"\"") ?? "";
+        csvLines.Add($"{r.Id},{r.UserId},{r.ClothingId},{r.Rating},\"{commentEscaped}\"");
+        }
+
+        var csvContent = string.Join(Environment.NewLine, csvLines);
+        return Encoding.UTF8.GetBytes(csvContent);
     }
 }
