@@ -240,7 +240,7 @@ public class ClothingsController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent(); // 204
-    }
+    }          
     private bool TryGetUserId(out Guid userId)
     {
         var idStr =

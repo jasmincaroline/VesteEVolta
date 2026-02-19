@@ -10,17 +10,17 @@ public class TestAuthController : ControllerBase
     [Authorize]
     [HttpGet("any")]
     public IActionResult AnyLogged()
-        => Ok("Qualquer pessoa logada ✅");
+        => Ok("Qualquer pessoa logada");
 
     [Authorize(Roles = "Owner")]
     [HttpGet("owner")]
     public IActionResult OnlyOwner()
-        => Ok("Somente Owner ✅");
+        => Ok("Somente Owner");
 
     [Authorize(Roles = "User")]
     [HttpGet("user")]
     public IActionResult OnlyUser()
-        => Ok("Somente User ✅");
+        => Ok("Somente User");
 }
 
 [ApiController]

@@ -1,13 +1,16 @@
 using Moq;
 using VesteEVolta.Application.DTOs;
 using VesteEVolta.Models;
+using NUnit.Framework;
+using VesteEVolta.Repositories;
+using VesteEVolta.Services;
 
 [TestFixture]
 public class RatingServiceTests
 {
-    private Mock<IRatingRepository> _ratingRepositoryMock;
-    private Mock<IRentalRepository> _rentalRepositoryMock;
-    private RatingService _service;
+    private Mock<IRatingRepository> _ratingRepositoryMock = null!;
+    private Mock<IRentalRepository> _rentalRepositoryMock = null!;
+    private RatingService _service = null!;
 
     [SetUp]
     public void Setup()

@@ -51,15 +51,18 @@ public class CategoriesController : ControllerBase
             return BadRequest("Nome é obrigatório, não esquece :)");
 
         // 409 - nome duplicado
+        var newName = dto.Name.Trim();
+
         var exists = await _context.TbCategories
-            .AnyAsync(c => c.Name.ToLower() == dto.Name.ToLower());
+            .AnyAsync(c => c.Name.ToLower() == newName.ToLower());
+        
         if (exists)
             return Conflict("Já existe uma categoria com esse nome, escolha outro nome, por favor :)");
 
         var category = new TbCategory
         {
             CategoryId = Guid.NewGuid(),
-            Name = dto.Name
+            Name = newName
         };
 
         _context.TbCategories.Add(category);

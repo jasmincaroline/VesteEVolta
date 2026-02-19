@@ -5,6 +5,7 @@ using System.Security.Claims;
 using VesteEVolta.DTO;
 using VesteEVolta.Services;
 using VesteEVolta.Models;
+using VesteEVolta.Exceptions;
 
 namespace VesteEVolta.Controllers
 {
@@ -26,18 +27,22 @@ namespace VesteEVolta.Controllers
         public async Task<IActionResult> Create([FromBody] CreateReportDto dto)
         {
             var userIdStr =
-            User.FindFirstValue(ClaimTypes.NameIdentifier) ??
-            User.FindFirstValue("sub");
+                User.FindFirstValue(ClaimTypes.NameIdentifier) ??
+                User.FindFirstValue("sub");
 
             if (string.IsNullOrWhiteSpace(userIdStr) || !Guid.TryParse(userIdStr, out var reporterId))
                 return Unauthorized("Token sem userId válido.");
 
-            var created = await _service.CreateAsync(reporterId, dto);
-
-            //aqui troca Id -> ReportId
-            return CreatedAtAction(nameof(GetById), new { id = created.ReportId }, created);
+            try
+            {
+                var created = await _service.CreateAsync(reporterId, dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.ReportId }, created);
+            }
+            catch (BusinessException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -94,9 +99,17 @@ namespace VesteEVolta.Controllers
         [HttpPut("{id:guid}/status")]
         public async Task<IActionResult> UpdateStatus([FromRoute] Guid id, [FromBody] UpdateReportStatusDto dto)
         {
-            var updated = await _service.UpdateStatusAsync(id, dto.Status);
-            return Ok(updated);
+            try
+            {
+                var updated = await _service.UpdateStatusAsync(id, dto.Status);
+                return Ok(updated);
+            }
+            catch (BusinessException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
+
 
 
 

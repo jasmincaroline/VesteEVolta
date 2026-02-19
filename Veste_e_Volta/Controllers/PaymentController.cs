@@ -35,7 +35,7 @@ public class PaymentController : ControllerBase
 
     [HttpPost("rentals/{rentalId}/payments")]
     public async Task<IActionResult> Create(Guid rentalId,
-                                           [FromBody] CreatePaymentDto dto)
+    [FromBody] CreatePaymentDto dto)
     {
         try
         {

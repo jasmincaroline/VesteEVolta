@@ -9,3 +9,6 @@ Veste_e_Volta/VesteEVolta.csproj.user
 *.jpg
 *.png
 
+coveragereport/
+coverage-report/
+TestResults/
