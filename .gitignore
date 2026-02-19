@@ -1,1 +1,11 @@
 Veste_e_Volta/VesteEVolta.csproj.user
+
+# Visual Studio
+.vs/
+
+# Imagens soltas na raiz 
+*.gif
+*.jpeg
+*.jpg
+*.png
+
