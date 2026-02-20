@@ -224,7 +224,10 @@ public class ClothingsController : ControllerBase
         if (!TryGetUserId(out var userId))
             return Unauthorized("Token inválido.");
 
-        var clothing = await _context.TbClothings.FirstOrDefaultAsync(c => c.Id == id);
+        var clothing = await _context.TbClothings
+            .Include(c => c.Categories)
+            .FirstOrDefaultAsync(c => c.Id == id);
+
         if (clothing == null)
             return NotFound("Roupa não encontrada :(.");
 
@@ -235,6 +238,9 @@ public class ClothingsController : ControllerBase
         // 409 se estiver alugada
         if (string.Equals(clothing.AvailabilityStatus, "RENTED", StringComparison.OrdinalIgnoreCase))
             return Conflict("Não é possível deletar uma roupa alugada (RENTED).");
+
+        if (clothing.Categories.Any())
+            return Conflict("Não é possível deletar uma roupa que possui categorias associadas. Remova as categorias antes de deletar a roupa.");
 
         _context.TbClothings.Remove(clothing);
         await _context.SaveChangesAsync();
