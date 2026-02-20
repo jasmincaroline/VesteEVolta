@@ -1,8 +1,8 @@
-#  VesteEVolta - Aluguel de Roupas
-
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Latest-316192?logo=postgresql)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+#  VesteEVolta - Aluguel de Roupas
 
 ## Descrição
 
@@ -210,12 +210,12 @@ Certifique-se de ter instalado:
 - **[.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)** ou superior
 - **[PostgreSQL 14+](https://www.postgresql.org/download/)** 
 - **[Git](https://git-scm.com/downloads)**
-- Um editor de código como **[Visual Studio 2022](https://visualstudio.microsoft.com/)**, **[VS Code](https://code.visualstudio.com/)** ou **[JetBrains Rider](https://www.jetbrains.com/rider/)**
+- Um editor de código como **[VS Code](https://code.visualstudio.com/)** ou **[JetBrains Rider](https://www.jetbrains.com/rider/)**
 
 ### 1. Clonar o Repositório
 
 ```bash
-git clone https://github.com/seu-usuario/VesteEVolta.git
+git clone https://github.com/jasmincaroline/VesteEVolta.git
 cd VesteEVolta
 ```
 
@@ -239,38 +239,16 @@ Ou utilize uma ferramenta gráfica como **pgAdmin** ou **DBeaver** para executar
 
 ### 3. Configurar o `appsettings.json`
 
-Edite o arquivo `Veste_e_Volta/appsettings.json` com suas credenciais do PostgreSQL:
+O projeto inclui um arquivo `appsettings.json_example` com as configurações necessárias.
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=vestevolta;Username=seu_usuario;Password=sua_senha"
-  },
-  "Jwt": {
-    "Key": "SUA_CHAVE_SECRETA_AQUI_MINIMO_32_CARACTERES",
-    "Issuer": "VesteEVolta",
-    "Audience": "VesteEVolta"
-  }
-}
+**Copie e renomeie o arquivo:**
+
+```bash
+cd Veste_e_Volta
+copy appsettings.json_example appsettings.json
 ```
 
-** Importante:**
-- A chave JWT (`Key`) deve ter no mínimo 32 caracteres
-- **Nunca** commite credenciais reais no repositório
-- Para produção, use variáveis de ambiente ou Azure Key Vault
-
-### 4. String de Conexão
-
-Formato da string de conexão PostgreSQL:
-
-```
-Host=<host>;Port=<porta>;Database=<nome_do_banco>;Username=<usuario>;Password=<senha>
-```
-
-**Exemplo local:**
-```
-Host=localhost;Port=5432;Database=vestevolta;Username=postgres;Password=root
-```
+Pronto! O projeto já está configurado e pronto para rodar.
 
 ---
 
@@ -297,44 +275,85 @@ dotnet run
 
 Após iniciar, a API estará disponível em:
 
-- **HTTP:** `http://localhost:5000`
-- **HTTPS:** `https://localhost:5001`
+- **HTTP:** `http://localhost:5096`
 
-
-##  Migrations (Entity Framework Core)
-
-### Verificar se há Migrations Pendentes
+#### Exemplos de Endpoints:
 
 ```bash
-cd Veste_e_Volta
+# Listar todas as roupas
+GET http://localhost:5096/clothes
+
+# Listar roupas com filtros
+GET http://localhost:5096/clothes?status=available&minPrice=100&maxPrice=200
+
+# Registrar usuário
+POST http://localhost:5096/auth/register
+
+# Login
+POST http://localhost:5096/auth/login
+```
+
+**Ferramentas para testar:**
+- [Insomnia](https://insomnia.rest/)
+- [Postman](https://www.postman.com/)
+- [Thunder Client](https://www.thunderclient.com/) (extensão VS Code)
+
+
+## 🗄️ Gerenciamento do Banco de Dados
+
+### Método Utilizado: Scripts SQL Diretos
+
+Este projeto utiliza **scripts SQL diretos** para criar e atualizar o banco de dados.
+
+O schema inicial está no arquivo:
+```
+Veste_e_Volta/Database/001_initial_schema.sql
+```
+
+**Para aplicar ou atualizar o banco:**
+
+```bash
+# Executar o script SQL no PostgreSQL
+psql -U postgres -d vestevolta -f Veste_e_Volta/Database/001_initial_schema.sql
+```
+
+Ou use uma ferramenta gráfica (pgAdmin, DBeaver, etc.) para executar o script.
+
+---
+
+### Alternativa: Entity Framework Migrations (Opcional)
+
+Se você preferir usar **EF Core Migrations** em vez de scripts SQL:
+
+1. **Remova ou ignore** o script `001_initial_schema.sql`
+2. **Crie a migration inicial:**
+   ```bash
+   cd Veste_e_Volta
+   dotnet ef migrations add InitialCreate
+   ```
+
+3. **Aplique ao banco:**
+   ```bash
+   dotnet ef database update
+   ```
+
+4. **Para novas alterações:**
+   ```bash
+   dotnet ef migrations add NomeDaAlteracao
+   dotnet ef database update
+   ```
+
+**Comandos úteis do EF Migrations:**
+```bash
+# Listar migrations
 dotnet ef migrations list
-```
 
-### Criar uma Nova Migration
-
-```bash
-dotnet ef migrations add NomeDaMigration
-```
-
-### Aplicar Migrations ao Banco
-
-```bash
-dotnet ef database update
-```
-
-### Reverter a Última Migration
-
-```bash
+# Reverter última migration
 dotnet ef migrations remove
-```
 
-### Gerar Script SQL de uma Migration
-
-```bash
+# Gerar script SQL
 dotnet ef migrations script --output migration.sql
 ```
-
-**Nota:** Este projeto usa migrations através de scripts SQL diretos. Se preferir usar EF Migrations, remova o script `001_initial_schema.sql` e crie migrations a partir dos Models.
 
 ---
 
@@ -346,12 +365,10 @@ dotnet ef migrations script --output migration.sql
 dotnet test
 ```
 
-
 ---
+
 <div align="center">
 
 ⭐ Se este projeto foi útil, considere dar uma estrela!
-
-<br><br>
 
 </div>
